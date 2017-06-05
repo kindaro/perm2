@@ -10,9 +10,26 @@ import Control.Arrow ((>>>))
 
 (.>) = flip (.)
 
+type L2 a = [[a]]
 
-swaps :: Int -> [[Int]]
-swaps = (+ (-1)) .> T.tuples 2 .> fmap nub .> nub .> L.filter (\x -> length x == 2)
+nub2 :: Ord a => L2 a -> L2 a
+nub2 =  fmap nub' .> nub'
     where
-    nub :: Ord a => [a] -> [a]
-    nub = S.fromList .> S.elems
+    nub' :: Ord a => [a] -> [a]
+    nub' = S.fromList .> S.elems
+
+lengthEq n xs = length xs == n
+filterLength n = L.filter (lengthEq n)
+
+swaps :: Int -> L2 Int
+swaps = T.tuples1 2 .> nub2 .> filterLength 2
+
+daisy2 = fmap (p . pure) dials
+    where dials = [[1..4], [4..7]]
+
+compositions xs n = fmap (xs!!) <$> c n (length xs)
+    where
+    c k n = concatMap (`T.tuples` (n - 1)) [1..k]
+
+cy2 :: Int -> [L2 Integer]
+cy2 = nub2 . fmap toCycles . fmap product . compositions daisy2
